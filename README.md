@@ -86,6 +86,86 @@ Add this to your MCP config:
 
 Then restart your MCP client.
 
+### Install into another repo
+
+From any machine where this repo is cloned and `bun` is installed, run this from the target project:
+
+```bash
+DESIGN_MCP_ROOT="/absolute/path/to/design-mcp"
+STDIO="$DESIGN_MCP_ROOT/src/stdio.ts"
+DB="$DESIGN_MCP_ROOT/data/design-mcp.db"
+
+test -f "$STDIO" || { echo "Missing $STDIO"; exit 1; }
+
+# Claude Code: project-scoped server in the current repo.
+claude mcp add -s project \
+  -e DESIGN_MCP_USE_ENGINE=1 \
+  -e DESIGN_MCP_ENGINE_PROVIDER=claude-binary \
+  -e DESIGN_MCP_WRITE_ARTIFACTS=1 \
+  -e DESIGN_MCP_ARTIFACT_BASE_PATH="$DESIGN_MCP_ROOT" \
+  -e DESIGN_MCP_MODEL=claude-sonnet-4-6 \
+  -e DESIGN_MCP_ANIMATION_MODEL=haiku \
+  -e DESIGN_MCP_REFINE_TOKENS=1 \
+  -e DESIGN_MCP_DB_PATH="$DB" \
+  design-mcp -- bun "$STDIO"
+
+# Codex: stdio server registration.
+codex mcp add design-mcp \
+  --env DESIGN_MCP_USE_ENGINE=1 \
+  --env DESIGN_MCP_ENGINE_PROVIDER=claude-binary \
+  --env DESIGN_MCP_WRITE_ARTIFACTS=1 \
+  --env DESIGN_MCP_ARTIFACT_BASE_PATH="$DESIGN_MCP_ROOT" \
+  --env DESIGN_MCP_MODEL=claude-sonnet-4-6 \
+  --env DESIGN_MCP_ANIMATION_MODEL=haiku \
+  --env DESIGN_MCP_REFINE_TOKENS=1 \
+  --env DESIGN_MCP_DB_PATH="$DB" \
+  -- bun "$STDIO"
+```
+
+Or use this one-shot installer:
+
+```bash
+DESIGN_MCP_ROOT="/absolute/path/to/design-mcp" bash <<'SH'
+set -euo pipefail
+
+: "${DESIGN_MCP_ROOT:?Set DESIGN_MCP_ROOT to the design-mcp repo path}"
+
+STDIO="$DESIGN_MCP_ROOT/src/stdio.ts"
+DB="$DESIGN_MCP_ROOT/data/design-mcp.db"
+
+test -f "$STDIO" || { echo "Missing $STDIO"; exit 1; }
+
+claude mcp remove design-mcp >/dev/null 2>&1 || true
+codex mcp remove design-mcp >/dev/null 2>&1 || true
+
+claude mcp add -s project \
+  -e DESIGN_MCP_USE_ENGINE=1 \
+  -e DESIGN_MCP_ENGINE_PROVIDER=claude-binary \
+  -e DESIGN_MCP_WRITE_ARTIFACTS=1 \
+  -e DESIGN_MCP_ARTIFACT_BASE_PATH="$DESIGN_MCP_ROOT" \
+  -e DESIGN_MCP_MODEL=claude-sonnet-4-6 \
+  -e DESIGN_MCP_ANIMATION_MODEL=haiku \
+  -e DESIGN_MCP_REFINE_TOKENS=1 \
+  -e DESIGN_MCP_DB_PATH="$DB" \
+  design-mcp -- bun "$STDIO"
+
+codex mcp add design-mcp \
+  --env DESIGN_MCP_USE_ENGINE=1 \
+  --env DESIGN_MCP_ENGINE_PROVIDER=claude-binary \
+  --env DESIGN_MCP_WRITE_ARTIFACTS=1 \
+  --env DESIGN_MCP_ARTIFACT_BASE_PATH="$DESIGN_MCP_ROOT" \
+  --env DESIGN_MCP_MODEL=claude-sonnet-4-6 \
+  --env DESIGN_MCP_ANIMATION_MODEL=haiku \
+  --env DESIGN_MCP_REFINE_TOKENS=1 \
+  --env DESIGN_MCP_DB_PATH="$DB" \
+  -- bun "$STDIO"
+
+echo "Restart Claude Code/Codex, then use the generate_design tool."
+SH
+```
+
+This uses `claude-binary` because the default `sdk` provider requires `ANTHROPIC_API_KEY`; make sure the `claude` CLI is installed and logged in.
+
 ### HTTP MCP
 
 ```bash
