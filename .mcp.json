@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "aidesigner": {
+      "type": "http",
+      "url": "https://api.aidesigner.ai/api/v1/mcp"
+    },
+    "design-mcp": {
+      "command": "bun",
+      "args": ["/Users/fauzan/github/keloya/design-mcp/src/stdio.ts"],
+      "env": {
+        "DESIGN_MCP_USE_ENGINE": "1",
+        "DESIGN_MCP_ENGINE_PROVIDER": "claude-binary",
+        "DESIGN_MCP_WRITE_ARTIFACTS": "1",
+        "DESIGN_MCP_ARTIFACT_BASE_PATH": "/Users/fauzan/github/keloya/design-mcp",
+        "DESIGN_MCP_MODEL": "claude-sonnet-4-6",
+        "DESIGN_MCP_ANIMATION_MODEL": "haiku",
+        "DESIGN_MCP_REFINE_TOKENS": "1",
+        "DESIGN_MCP_DB_PATH": "/Users/fauzan/github/keloya/design-mcp/data/design-mcp.db"
+      }
+    }
+  }
+}

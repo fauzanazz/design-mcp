@@ -1,0 +1,15 @@
+.aidesigner/*
+!.aidesigner/.gitkeep
+
+# dependencies
+node_modules/
+
+# build output
+dist/
+
+# databases
+*.db
+data/
+
+# local env overrides
+.env
