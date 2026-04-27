@@ -1,6 +1,16 @@
 # design-mcp
 
-MCP server that clones the AIDesigner MCP architectural shell.
+Local MCP server for generating opinionated single-file UI designs, refining them, adding optional animation passes, and teaching the model which styles are amazing vs slop.
+
+![Example generated output](assets/example-output.svg)
+
+## Highlights
+
+- `generate_design` creates HTML/CSS product surfaces from a prompt + repo context.
+- `animate_after_layout` runs a second animation-only pass after the static layout is done.
+- Animation pass can add compact GSAP/JS only for motion; default generation stays static and safe.
+- `rate_style_direction` lets users label results as `amazing` or `slop` so future generations learn taste.
+- Runs through both HTTP MCP (`src/index.ts`) and Droid/Claude stdio MCP (`src/stdio.ts`).
 
 ## Install
 
@@ -18,14 +28,30 @@ bun dev
 ## Test
 
 ```bash
+bun run typecheck
 bun test
 ```
 
-## Run
+## Run HTTP MCP
 
 ```bash
 bun start
 # Listens on :3333 by default
+```
+
+## Run stdio MCP
+
+Use this from `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "design-mcp": {
+      "command": "bun",
+      "args": ["/absolute/path/to/design-mcp/src/stdio.ts"]
+    }
+  }
+}
 ```
 
 ## Inspect
@@ -43,26 +69,31 @@ Pass `x-api-key: <DESIGN_MCP_API_KEY>` header on all requests. Unset key disable
 
 Uses `WebStandardStreamableHTTPServerTransport` (Bun-native Web Standard APIs) via `Bun.serve`. No Node.js http adapter needed.
 
-## Milestones
+## Core tools
 
-- M0: 10 tools, canned responses, no persistence
-- M1: SQLite run store, real RepoContextObject shape
-- M2 (current): Claude SDK invocation wired to generate/refine tools
+- `generate_design`
+- `refine_design`
+- `rate_style_direction`
+- `get_canvas`
+- `list_canvases`
+- `extract_canvas_design`
 
-## M2: enabling real engine
+## Enable real engine
 
 By default `generate_design` and `refine_design` return canned HTML so tests pass without credentials. To use the real Claude engine:
 
 ```bash
 export DESIGN_MCP_USE_ENGINE=1
-export ANTHROPIC_API_KEY=sk-ant-...
+export DESIGN_MCP_ENGINE_PROVIDER=claude-binary
 ```
 
 Optional tuning:
 
 ```bash
-export DESIGN_MCP_MODEL=claude-opus-4-7          # higher fidelity (default: claude-haiku-4-5-20251001)
-export DESIGN_MCP_MAX_CONCURRENCY=4              # parallel engine calls (default: 2)
+export DESIGN_MCP_MODEL=claude-sonnet-4-6
+export DESIGN_MCP_ANIMATION_MODEL=haiku
+export DESIGN_MCP_MAX_CONCURRENCY=4
+export DESIGN_MCP_WRITE_ARTIFACTS=1
 ```
 
 Engine smoke test (requires API key):
