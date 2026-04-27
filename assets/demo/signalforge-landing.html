@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SignalForge — Incident Timelines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --paper:#f4f1e8; --ink:#10100e; --muted:#6d695e; --line:#d6d0c2; --red:#a9281f; --charcoal:#181713; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--paper); color:var(--ink); font-family:Archivo, sans-serif; }
+    body::before { content:""; position:fixed; inset:0; pointer-events:none; background-image:linear-gradient(rgba(16,16,14,.045) 1px, transparent 1px),linear-gradient(90deg, rgba(16,16,14,.045) 1px, transparent 1px); background-size:40px 40px; }
+    .shell { width:min(1240px, calc(100% - 48px)); margin:0 auto; position:relative; }
+    .nav { height:76px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--ink); font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; }
+    .brand { display:flex; gap:12px; align-items:center; font-weight:700; }
+    .mark { width:30px; height:30px; border:2px solid var(--ink); display:grid; place-items:center; color:var(--red); }
+    .nav a { color:var(--ink); text-decoration:none; margin-left:26px; }
+    .hero { display:grid; grid-template-columns:1.05fr .95fr; gap:54px; padding:74px 0 62px; border-bottom:1px solid var(--ink); }
+    .kicker { font-family:"IBM Plex Mono", monospace; color:var(--red); text-transform:uppercase; letter-spacing:.18em; font-size:12px; margin-bottom:28px; }
+    h1 { font-size:clamp(58px, 8vw, 116px); line-height:.86; letter-spacing:-.07em; margin:0; font-weight:900; max-width:760px; }
+    .hero p { margin:28px 0 0; max-width:560px; color:#3f3b34; font-size:19px; line-height:1.55; }
+    .actions { display:flex; gap:12px; margin-top:34px; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:0 22px; border:1px solid var(--ink); text-decoration:none; color:var(--ink); font-family:"IBM Plex Mono", monospace; font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+    .btn.primary { background:var(--ink); color:var(--paper); }
+    .artifact { border:1px solid var(--ink); background:#fffaf0; align-self:end; box-shadow:18px 18px 0 var(--charcoal); }
+    .artifact-head { display:flex; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--ink); font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--muted); }
+    .timeline { padding:22px; }
+    .event { display:grid; grid-template-columns:86px 1fr 62px; gap:14px; padding:14px 0; border-bottom:1px solid var(--line); align-items:start; }
+    .event:last-child { border-bottom:0; }
+    .time, .sev { font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--muted); }
+    .sev { color:var(--red); text-align:right; font-weight:700; }
+    .event strong { display:block; font-size:17px; letter-spacing:-.02em; }
+    .event span { display:block; margin-top:6px; color:var(--muted); font-size:13px; line-height:1.35; }
+    .proof { display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid var(--ink); }
+    .proof div { padding:30px 24px; border-right:1px solid var(--line); }
+    .proof div:last-child { border-right:0; }
+    .proof b { display:block; font-size:42px; letter-spacing:-.05em; line-height:1; }
+    .proof span { display:block; margin-top:8px; font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; }
+    .features { display:grid; grid-template-columns:repeat(3,1fr); gap:0; padding:64px 0; }
+    .feature { border:1px solid var(--ink); border-right:0; padding:30px; min-height:260px; background:rgba(244,241,232,.86); }
+    .feature:last-child { border-right:1px solid var(--ink); }
+    .feature small { font-family:"IBM Plex Mono", monospace; color:var(--red); }
+    .feature h2 { margin:44px 0 14px; font-size:30px; letter-spacing:-.04em; line-height:1; }
+    .feature p { margin:0; color:var(--muted); line-height:1.55; }
+    .cta { margin-bottom:72px; background:var(--ink); color:var(--paper); padding:44px; display:flex; justify-content:space-between; gap:40px; align-items:end; }
+    .cta h2 { margin:0; font-size:54px; line-height:.95; letter-spacing:-.055em; max-width:680px; }
+    .cta .btn { border-color:var(--paper); color:var(--paper); }
+    @media (max-width:900px){ .hero,.features,.proof{grid-template-columns:1fr}.artifact{box-shadow:none}.feature,.proof div{border-right:1px solid var(--ink)}.cta{display:block}.nav-links{display:none} }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <nav class="nav"><div class="brand"><span class="mark">⌁</span>SignalForge</div><div class="nav-links"><a href="#">Product</a><a href="#">Evidence</a><a href="#">Docs</a></div></nav>
+    <main>
+      <section class="hero">
+        <div><div class="kicker">Incident replay for serious engineering teams</div><h1>Every outage becomes a timeline you can prove.</h1><p>SignalForge reconstructs production incidents from deploys, traces, alerts, commits, and human decisions so teams stop debating screenshots and start shipping fixes.</p><div class="actions"><a class="btn primary" href="#">Replay an incident</a><a class="btn" href="#">View sample timeline</a></div></div>
+        <aside class="artifact" aria-label="Incident timeline artifact"><div class="artifact-head"><span>INC-4729 / CHECKOUT LATENCY</span><span>REPLAY READY</span></div><div class="timeline"><div class="event"><div class="time">09:42:18</div><div><strong>Deploy window opened</strong><span>payments-worker v18.4.2 rolled to 12% of traffic.</span></div><div class="sev">LOW</div></div><div class="event"><div class="time">09:47:03</div><div><strong>P95 crossed threshold</strong><span>Checkout trace fan-out increased after feature flag cohort expanded.</span></div><div class="sev">WARN</div></div><div class="event"><div class="time">09:51:44</div><div><strong>Root span isolated</strong><span>Tax service retry loop reproduced against original payload bundle.</span></div><div class="sev">HIGH</div></div><div class="event"><div class="time">10:08:12</div><div><strong>Patch verified</strong><span>Replay suite passed with customer-impact diff attached.</span></div><div class="sev">FIX</div></div></div></aside>
+      </section>
+      <section class="proof"><div><b>7.4m</b><span>events stitched daily</span></div><div><b>41%</b><span>lower MTTR median</span></div><div><b>98</b><span>deploy systems mapped</span></div><div><b>SOC2</b><span>audit trail exports</span></div></section>
+      <section class="features"><article class="feature"><small>01 / CAUSAL GRAPH</small><h2>Not another alert inbox.</h2><p>SignalForge links symptoms to code, flags, data stores, and ownership boundaries with hard evidence instead of vibes.</p></article><article class="feature"><small>02 / REPLAY LAB</small><h2>Reproduce the exact failure.</h2><p>Bundle traces, configs, and payload fingerprints into deterministic incident fixtures your team can rerun.</p></article><article class="feature"><small>03 / POSTMORTEM EXPORT</small><h2>Write the report while it happens.</h2><p>Every decision, command, rollback, and mitigation is captured into a clean narrative for compliance and learning.</p></article></section>
+      <section class="cta"><h2>Turn the next sev-one into institutional memory.</h2><a class="btn" href="#">Generate replay</a></section>
+    </main>
+  </div>
+</body>
+</html>

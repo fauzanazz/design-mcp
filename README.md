@@ -41,6 +41,14 @@ With `animate_after_layout: true`, the flow is:
 layout pass -> animation-only refine pass -> review prompt -> user rates style memory
 ```
 
+## Demo gallery
+
+Open `assets/demo/index.html` in a browser to view short, GitHub-friendly examples generated for different product surfaces:
+
+- `assets/demo/signalforge-landing.html` — technical product landing page.
+- `assets/demo/northstar-ops-dashboard.html` — executive operations dashboard.
+- `assets/demo/arcade-kinetic-hero.html` — expressive kinetic hero page.
+
 ## Installation
 
 ```bash
