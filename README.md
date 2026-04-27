@@ -1,123 +1,212 @@
-# design-mcp
+<p align="center">
+  <img src="assets/example-output.svg" alt="design-mcp example output" width="100%" />
+</p>
 
-Local MCP server for generating opinionated single-file UI designs, refining them, adding optional animation passes, and teaching the model which styles are amazing vs slop.
+<h1 align="center">design-mcp</h1>
 
-![Example generated output](assets/example-output.svg)
+<p align="center">
+  Local MCP server for generating opinionated UI designs, adding animation passes, and teaching taste memory what is <strong>amazing</strong> vs <strong>slop</strong>.
+</p>
 
-## Highlights
+<p align="center">
+  <a href="https://github.com/fauzanazz/design-mcp"><img alt="MCP" src="https://img.shields.io/badge/MCP-local-black" /></a>
+  <img alt="Runtime" src="https://img.shields.io/badge/runtime-Bun-f56e1c" />
+  <img alt="Transport" src="https://img.shields.io/badge/transport-stdio%20%2B%20HTTP-151515" />
+</p>
 
-- `generate_design` creates HTML/CSS product surfaces from a prompt + repo context.
-- `animate_after_layout` runs a second animation-only pass after the static layout is done.
-- Animation pass can add compact GSAP/JS only for motion; default generation stays static and safe.
-- `rate_style_direction` lets users label results as `amazing` or `slop` so future generations learn taste.
-- Runs through both HTTP MCP (`src/index.ts`) and Droid/Claude stdio MCP (`src/stdio.ts`).
+---
 
-## Install
+## Why design-mcp?
+
+Most design generators overfit to the same AI SaaS look: purple/cyan gradients, soft glow blobs, glass cards, Inter, and vague centered hero sections.
+
+design-mcp adds a local MCP workflow that:
+
+- Generates single-file HTML/CSS product surfaces from a prompt and repo context.
+- Optionally runs a second `animate_after_layout` pass after the layout is stable.
+- Allows compact GSAP/JavaScript only in the animation layer.
+- Stores style memory with `rate_style_direction`, so users can label outputs as `amazing` or `slop`.
+- Feeds that taste memory back into future generations.
+
+## Example prompt
+
+```txt
+Generate a compact one-screen landing page for MotionForge with a hero headline,
+subtitle, CTA, and a polished GSAP entrance timeline.
+```
+
+With `animate_after_layout: true`, the flow is:
+
+```txt
+layout pass -> animation-only refine pass -> review prompt -> user rates style memory
+```
+
+## Installation
 
 ```bash
+git clone https://github.com/fauzanazz/design-mcp.git
+cd design-mcp
 bun install
 ```
 
-## Dev
+## MCP setup
 
-```bash
-cp .env.example .env
-bun dev
-```
+### Droid / Claude Code stdio
 
-## Test
-
-```bash
-bun run typecheck
-bun test
-```
-
-## Run HTTP MCP
-
-```bash
-bun start
-# Listens on :3333 by default
-```
-
-## Run stdio MCP
-
-Use this from `.mcp.json`:
+Add this to your MCP config:
 
 ```json
 {
   "mcpServers": {
     "design-mcp": {
       "command": "bun",
-      "args": ["/absolute/path/to/design-mcp/src/stdio.ts"]
+      "args": ["/absolute/path/to/design-mcp/src/stdio.ts"],
+      "env": {
+        "DESIGN_MCP_USE_ENGINE": "1",
+        "DESIGN_MCP_ENGINE_PROVIDER": "claude-binary",
+        "DESIGN_MCP_WRITE_ARTIFACTS": "1",
+        "DESIGN_MCP_ARTIFACT_BASE_PATH": "/absolute/path/to/design-mcp",
+        "DESIGN_MCP_MODEL": "claude-sonnet-4-6",
+        "DESIGN_MCP_ANIMATION_MODEL": "haiku",
+        "DESIGN_MCP_REFINE_TOKENS": "1",
+        "DESIGN_MCP_DB_PATH": "/absolute/path/to/design-mcp/data/design-mcp.db"
+      }
     }
   }
 }
 ```
 
-## Inspect
+Then restart your MCP client.
+
+### HTTP MCP
+
+```bash
+bun start
+```
+
+The HTTP server listens on `:3333` by default and exposes MCP at:
+
+```txt
+http://localhost:3333/mcp
+```
+
+Inspect it with:
 
 ```bash
 bun inspect
-# Opens MCP Inspector pointed at http://localhost:3333/mcp
 ```
 
-## Auth
+## Available tools
 
-Pass `x-api-key: <DESIGN_MCP_API_KEY>` header on all requests. Unset key disables auth check (dev convenience).
+| Tool | Purpose |
+| --- | --- |
+| `generate_design` | Generate a new UI from prompt + repo context. |
+| `refine_design` | Refine a prior run or raw HTML with feedback. |
+| `rate_style_direction` | Teach the style database that something is `amazing` or `slop`. |
+| `list_canvases` | Stub canvas listing surface. |
+| `get_canvas` | Stub canvas detail surface. |
+| `extract_canvas_design` | Stub design extraction surface. |
+| `create_editor_session` | Stub editor session flow. |
+| `link_editor_session` | Stub editor link flow. |
+| `unlink_editor_session` | Stub editor unlink flow. |
+| `whoami` | Returns stub user info. |
+| `get_credit_status` | Returns stub credit info. |
 
-## Transport
+## Usage
 
-Uses `WebStandardStreamableHTTPServerTransport` (Bun-native Web Standard APIs) via `Bun.serve`. No Node.js http adapter needed.
+### Generate a design
 
-## Core tools
+```json
+{
+  "prompt": "Industrial landing page for a developer animation toolkit",
+  "repo_context": "n/a",
+  "viewport": "desktop",
+  "mode": "none",
+  "animate_after_layout": true
+}
+```
 
-- `generate_design`
-- `refine_design`
-- `rate_style_direction`
-- `get_canvas`
-- `list_canvases`
-- `extract_canvas_design`
+The response includes:
 
-## Enable real engine
+- `run_id`
+- `html`
+- `summary`
+- `review_prompt`
+- `animate_after_layout`
 
-By default `generate_design` and `refine_design` return canned HTML so tests pass without credentials. To use the real Claude engine:
+### Teach taste memory
+
+After reviewing a generated result, call `rate_style_direction`:
+
+```json
+{
+  "run_id": "<generated-run-id>",
+  "quality": "amazing",
+  "aesthetic": "industrial / utilitarian",
+  "title": "Machine interface landing",
+  "signals": "condensed type, hard borders, signal orange, technical grid",
+  "guidance": "Use dense technical hierarchy and schematic marks for developer-tool surfaces.",
+  "weight": 8
+}
+```
+
+For bad outputs, use:
+
+```json
+{
+  "quality": "slop",
+  "aesthetic": "all",
+  "title": "Generic AI SaaS blob stack",
+  "signals": "purple-cyan gradient, glass cards, glow orbs, vague centered hero",
+  "guidance": "Avoid this pattern; replace it with direction-specific structure and ornament.",
+  "weight": 10
+}
+```
+
+## Configuration
+
+| Env | Default | Notes |
+| --- | --- | --- |
+| `DESIGN_MCP_USE_ENGINE` | `false` | Uses canned responses when off. |
+| `DESIGN_MCP_ENGINE_PROVIDER` | `sdk` | Use `claude-binary` for Claude CLI mode. |
+| `DESIGN_MCP_MODEL` | `claude-sonnet-4-6` | Main layout generation model. |
+| `DESIGN_MCP_ANIMATION_MODEL` | `haiku` | Cheaper/faster animation refine model. |
+| `DESIGN_MCP_REFINE_TOKENS` | `false` | Refines slop-class color/font tokens first. |
+| `DESIGN_MCP_WRITE_ARTIFACTS` | `false` | Writes `.aidesigner/runs/<run_id>`. |
+| `DESIGN_MCP_DB_PATH` | `./data/design-mcp.db` | SQLite store for runs and style memory. |
+| `DESIGN_MCP_API_KEY` | empty | Required in production HTTP mode. |
+
+## Development
 
 ```bash
-export DESIGN_MCP_USE_ENGINE=1
-export DESIGN_MCP_ENGINE_PROVIDER=claude-binary
+cp .env.example .env
+bun run typecheck
+bun test
 ```
 
-Optional tuning:
+Run in watch mode:
 
 ```bash
-export DESIGN_MCP_MODEL=claude-sonnet-4-6
-export DESIGN_MCP_ANIMATION_MODEL=haiku
-export DESIGN_MCP_MAX_CONCURRENCY=4
-export DESIGN_MCP_WRITE_ARTIFACTS=1
+bun dev
 ```
 
-Engine smoke test (requires API key):
+## Smoke tests
 
 ```bash
-ANTHROPIC_API_KEY=sk-ant-... bun test test/m2.engine.test.ts
+bun test test/m2.engine.test.ts
 ```
 
-## Token refinery
-
-When `DESIGN_MCP_REFINE_TOKENS=1` is set, a haiku-based preprocessor runs before main generation and detects slop-class palettes (e.g. the `#a78bfa` violet + `#22d3ee` cyan + `#09090b` near-black "modern AI/SaaS dark mode" cliche). If detected, the refinery proposes a family-coherent alternative that preserves color relationships, semantic roles, and contrast while escaping the tech-SaaS idiom.
-
-- Adds ~$0.01 per call and ~5-15s latency (haiku model)
-- Only colors and fonts are mutated; component names and spacing tokens are untouched
-- The MCP response includes `repo_context_refined` (the replacement, or null if no refinement needed) and `refinement_reason`
+Full local smoke with artifacts:
 
 ```bash
-export DESIGN_MCP_USE_ENGINE=1
-export DESIGN_MCP_REFINE_TOKENS=1
-export ANTHROPIC_API_KEY=sk-ant-...
+DESIGN_MCP_USE_ENGINE=1 \
+DESIGN_MCP_ENGINE_PROVIDER=claude-binary \
+DESIGN_MCP_WRITE_ARTIFACTS=1 \
+bun scripts/smoke-fullstack.ts
 ```
 
-Refinery unit tests (no API key needed):
+## Notes
 
-```bash
-bun test test/m2.refine-tokens.test.ts
-```
+- Default test mode uses canned HTML, so CI does not need model credentials.
+- Runtime databases and generated artifacts are ignored by git.
+- `animate_after_layout` is intentionally two-pass: better output, higher latency.
